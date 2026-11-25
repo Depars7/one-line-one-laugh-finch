@@ -25,10 +25,18 @@ def entry_line():
 
 def main():
     line = entry_line()
+    # Gate check before anything is written: the sealed scorer only
+    # accepts UTF-8 text of 1-200 characters, not only whitespace.
+    if not line.strip() or not 1 <= len(line) <= 200:
+        raise SystemExit("entry line fails the 1-200 character gate")
     os.makedirs("/output", exist_ok=True)
-    with open("/output/entry.txt", "w", encoding="utf-8") as f:
+    # Atomic write: temp file in the same directory, world-readable
+    # (the grader collects outputs as another user), then rename.
+    tmp = "/output/.entry.txt.tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
         f.write(line)
-    os.chmod("/output/entry.txt", 0o644)
+    os.chmod(tmp, 0o644)
+    os.replace(tmp, "/output/entry.txt")
 
 
 if __name__ == "__main__":
